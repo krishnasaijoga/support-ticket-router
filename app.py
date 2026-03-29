@@ -95,3 +95,8 @@ def run_baseline():
         raise HTTPException(status_code=400,detail="Reset the Environment first")
     action=baseline_policy(last_observation)
     return {"baseline_action":action.action_type}
+
+
+if __name__=='__main__':
+    import uvicorn
+    uvicorn.run("app:app",host="0.0.0.0",port=7860)
