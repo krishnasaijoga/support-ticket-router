@@ -1,8 +1,16 @@
-</> Markdown
+---
+title: Support Ticket Router
+emoji: 🚀
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+---
 
 # Support Ticket Router Environment
 
-A simple OpenEnv style environment for routing customer support tickets
+A simple OpenEnv-style environment for routing customer support tickets.
 
 ## Features
 - reset, step, and state environment methods
@@ -10,8 +18,9 @@ A simple OpenEnv style environment for routing customer support tickets
 - simple reward logic
 - grader endpoint
 - baseline policy endpoint
-- FastAPI sever for interaction
+- FastAPI server for interaction
 
 ## Run locally
+
 ```bash
-uvicorn app:app --reload
+uvicorn app:app --host 0.0.0.0 --port 7860
