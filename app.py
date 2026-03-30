@@ -33,7 +33,7 @@ def get_tasks():
 def reset_env(request:ResetRequest):
     global last_observation
     if request.task_name not in TASKS:
-        return HTTPException(status_code=400,detail=f'Unknown task name: {request.task_name}')
+        raise HTTPException(status_code=400,detail=f'Unknown task name: {request.task_name}')
     obs=env.reset(request.task_name)
     last_observation=obs
     return {
