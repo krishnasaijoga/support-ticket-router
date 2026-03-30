@@ -65,7 +65,7 @@ def step_env(request:StepRequest):
     }
 
 
-@app.post("/state")
+@app.get("/state")
 def get_state():
     try:
         state=env.state
@@ -85,7 +85,7 @@ def get_state():
 
 @app.get("/grader")
 def grader():
-    return {grade_episode(env)}
+    return {"grade":grade_episode(env)}
 
 
 @app.get("/baseline")
