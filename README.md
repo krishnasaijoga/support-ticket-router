@@ -22,5 +22,5 @@ A simple OpenEnv-style environment for routing customer support tickets.
 
 ## Run locally
 
-```bash
+```bash 
 uvicorn app:app --host 0.0.0.0 --port 7860
