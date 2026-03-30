@@ -1,0 +1,49 @@
+name: support-ticket-router
+description: |
+  A reinforcement learning environment for routing customer support tickets.
+  The agent must assign tickets to the correct department, escalate when needed,
+  and resolve efficiently.
+
+version: 1.0
+
+entrypoint:
+  url: https://krishnajoga-support-ticket-router-v2.hf.space
+
+endpoints:
+  reset: /reset
+  step: /step
+  state: /state
+  grader: /grader
+  baseline: /baseline
+
+observation_space:
+  - ticket_text
+  - customer_tier
+  - urgency
+  - message
+
+action_space:
+  - assign_billing
+  - assign_technical
+  - assign_shipping
+  - request_more_info
+  - escalate
+  - resolve
+
+tasks:
+  - easy
+  - medium
+  - hard
+  - extra_hard
+  - hard_missing_info
+  - vip_priority
+  - repeat_failure
+
+reward:
+  correct_action: +1
+  incorrect_action: -0.5
+  completion_bonus: +1
+
+grader:
+  type: sequence_match
+  output_range: [0.0, 1.0]

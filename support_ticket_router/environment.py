@@ -32,7 +32,7 @@ TASKS = {
         "urgency": "high",
         "correct_flow": ["assign_billing", "escalate", "resolve"]
     },
-      "extra hard":{
+      "extra_hard":{
         "ticket_id":"T4",
         "ticket_text":"My payment failed and now I cannot access my account",
         "customer_tier":"regular",
@@ -96,21 +96,21 @@ class SupportTicketRouterEnv:
         raise ValueError('Environment is not reset. Call reset(), then take a step.')
       if self.state_data.done:
         return (TicketObservation(
-            ticket_text=self.current_task['ticket_text'],
-            customer_tier=self.current_task['customer_tier'],
-            urgency=self.current_task['urgency'],
+            ticket_text=self.current_task['ticket_text'], # type: ignore
+            customer_tier=self.current_task['customer_tier'], # pyright: ignore[reportOptionalSubscript]
+            urgency=self.current_task['urgency'], # pyright: ignore[reportOptionalSubscript]
             message='Episode already finished.'
         ),0.0,True,{'error':'Episode already done'})
       action_type=action.action_type
       if action_type not in VALID_ACTIONS:
         observation=TicketObservation(
-            ticket_text=self.current_task['ticket_text'],
-            customer_tier=self.current_task['customer_tier'],
-            urgency=self.current_task['urgency'],
+            ticket_text=self.current_task['ticket_text'], # pyright: ignore[reportOptionalSubscript]
+            customer_tier=self.current_task['customer_tier'], # pyright: ignore[reportOptionalSubscript]
+            urgency=self.current_task['urgency'], # pyright: ignore[reportOptionalSubscript]
             message=f'invalid action type: {action_type}'
         )
         return observation, -1.0,False, {'error':'Invalid action'}
-      correct_flow=self.current_task['correct_flow']
+      correct_flow=self.current_task['correct_flow'] # pyright: ignore[reportOptionalSubscript]
       current_step=self.state_data.current_step
       reward=0.0
       message=''
@@ -131,7 +131,7 @@ class SupportTicketRouterEnv:
         self.state_data.current_step+=1
         self.state_data.score+=reward
 
-        if action_type=='escalate' and self.current_task['urgency']=='high':
+        if action_type=='escalate' and self.current_task['urgency']=='high': # pyright: ignore[reportOptionalSubscript]
           reward+=0.5
         
         if self.state_data.current_step==len(correct_flow):
@@ -144,9 +144,9 @@ class SupportTicketRouterEnv:
         message=f'Wrong action type: {action_type}'
         self.state_data.score+=reward
       observation=TicketObservation(
-          ticket_text=self.current_task['ticket_text'],
-          customer_tier=self.current_task['customer_tier'],
-          urgency=self.current_task['urgency'],
+          ticket_text=self.current_task['ticket_text'], # pyright: ignore[reportOptionalSubscript]
+          customer_tier=self.current_task['customer_tier'], # pyright: ignore[reportOptionalSubscript]
+          urgency=self.current_task['urgency'], # pyright: ignore[reportOptionalSubscript]
           message=message
       )
       return observation, reward, self.state_data.done, {'history':self.state_data.history}
