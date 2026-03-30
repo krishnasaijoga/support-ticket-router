@@ -44,21 +44,21 @@ TASKS = {
       "ticket_text":"Something is wrong with my order",
       "customer_tier":"regular",
       "urgency":"low",
-      "correct_flow":["request_more_info","assign_shipping","resove"]
+      "correct_flow":["request_more_info","assign_shipping","resolve"]
     },
     "vip_priority":{
       "ticket_id":"T6",
       "ticket_text":"I am a VIP customer. My order is delayed.",
       "customer_tier":"vip",
       "urgency":"high",
-      "correct_flow":["assign_billing","assign_shipping","resove"]
+      "correct_flow":["assign_billing","assign_shipping","resolve"]
     },
     "repeat_failure":{
       "ticket_id":"T7",
       "ticket_text":"This is third time my payment failed. Please fix urgently.",
       "customer_tier":"regular",
       "urgency":"high",
-      "correct_flow":["assign_billing","escalate","resove"]
+      "correct_flow":["assign_billing","escalate","resolve"]
     }
 }
 
