@@ -31,6 +31,34 @@ TASKS = {
         "customer_tier": "vip",
         "urgency": "high",
         "correct_flow": ["assign_billing", "escalate", "resolve"]
+    },
+      "extra hard":{
+        "ticket_id":"T4",
+        "ticket_text":"My payment failed and now I cannot access my account",
+        "customer_tier":"regular",
+        "urgency":"high",
+        "correct_flow":["assign_billing","assign_technical","resolve"]
+    },
+    "hard_missing_info":{
+      "ticket_id":"T5",
+      "ticket_text":"Something is wrong with my order",
+      "customer_tier":"regular",
+      "urgency":"low",
+      "correct_flow":["request_more_info","assign_shipping","resove"]
+    },
+    "vip_priority":{
+      "ticket_id":"T6",
+      "ticket_text":"I am a VIP customer. My order is delayed.",
+      "customer_tier":"vip",
+      "urgency":"high",
+      "correct_flow":["assign_billing","assign_shipping","resove"]
+    },
+    "repeat_failure":{
+      "ticket_id":"T7",
+      "ticket_text":"This is third time my payment failed. Please fix urgently.",
+      "customer_tier":"regular",
+      "urgency":"high",
+      "correct_flow":["assign_billing","escalate","resove"]
     }
 }
 
@@ -102,6 +130,9 @@ class SupportTicketRouterEnv:
           self.state_data.resolved = True
         self.state_data.current_step+=1
         self.state_data.score+=reward
+
+        if action_type=='escalate' and self.current_task['urgency']=='high':
+          reward+=0.5
         
         if self.state_data.current_step==len(correct_flow):
           self.state_data.done=True

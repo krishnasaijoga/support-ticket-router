@@ -1,0 +1,3 @@
+https://huggingface.co/api/spaces/KrishnaJoga/support_ticket_router_v2/logs/run
+https://huggingface.co/api/spaces/KrishnaJoga/support_ticket_router_v2/logs/build
+https://krishnajoga-support-ticket-router-v2.hf.space/docs
