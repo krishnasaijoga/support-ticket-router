@@ -150,7 +150,7 @@ class SupportTicketRouterEnv:
         reward=-0.5
         message=f'Wrong action type: {action_type}'
         self.state_data.score+=reward
-      max_steps=self.current_task.get("max_steps",len(correct_flow)+1)
+      max_steps=self.current_task.get("max_steps",len(correct_flow)+1) # type: ignore
       if len(self.state_data.history)>=max_steps and not self.state_data.done:
         self.state_data.done=True
         self.state_data.score-=1
