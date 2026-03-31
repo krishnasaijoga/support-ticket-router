@@ -16,6 +16,7 @@ TASKS = {
         "ticket_text": "My payment failed but money was deducted.",
         "customer_tier": "regular",
         "urgency": "medium",
+        "max_steps":3,
         "correct_flow": ["assign_billing", "resolve"]
     },
     "medium": {
@@ -23,6 +24,7 @@ TASKS = {
         "ticket_text": "I am unable to log into my account after resetting password.",
         "customer_tier": "regular",
         "urgency": "medium",
+        "max_steps":3,
         "correct_flow": ["assign_technical", "resolve"]
     },
     "hard": {
@@ -30,6 +32,7 @@ TASKS = {
         "ticket_text": "I am a VIP customer. Payment failed, money deducted, and this is urgent.",
         "customer_tier": "vip",
         "urgency": "high",
+        "max_steps":4,
         "correct_flow": ["assign_billing", "escalate", "resolve"]
     },
       "extra_hard":{
@@ -37,6 +40,7 @@ TASKS = {
         "ticket_text":"My payment failed and now I cannot access my account",
         "customer_tier":"regular",
         "urgency":"high",
+        "max_steps":4,
         "correct_flow":["assign_billing","assign_technical","resolve"]
     },
     "hard_missing_info":{
@@ -44,6 +48,7 @@ TASKS = {
       "ticket_text":"Something is wrong with my order",
       "customer_tier":"regular",
       "urgency":"low",
+      "max_steps":4,
       "correct_flow":["request_more_info","assign_shipping","resolve"]
     },
     "vip_priority":{
@@ -51,6 +56,7 @@ TASKS = {
       "ticket_text":"I am a VIP customer. My order is delayed.",
       "customer_tier":"vip",
       "urgency":"high",
+      "max_steps":4,
       "correct_flow":["assign_billing","assign_shipping","resolve"]
     },
     "repeat_failure":{
@@ -58,6 +64,7 @@ TASKS = {
       "ticket_text":"This is third time my payment failed. Please fix urgently.",
       "customer_tier":"regular",
       "urgency":"high",
+      "max_steps":4,
       "correct_flow":["assign_billing","escalate","resolve"]
     }
 }
@@ -143,6 +150,11 @@ class SupportTicketRouterEnv:
         reward=-0.5
         message=f'Wrong action type: {action_type}'
         self.state_data.score+=reward
+      max_steps=self.current_task.get("max_steps",len(correct_flow)+1)
+      if len(self.state_data.history)>=max_steps and not self.state_data.done:
+        self.state_data.done=True
+        self.state_data.score-=1
+        message="Episode Terminated: max steps exceeded"
       observation=TicketObservation(
           ticket_text=self.current_task['ticket_text'], # pyright: ignore[reportOptionalSubscript]
           customer_tier=self.current_task['customer_tier'], # pyright: ignore[reportOptionalSubscript]

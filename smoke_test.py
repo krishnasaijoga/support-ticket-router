@@ -30,8 +30,12 @@ def main():
     hard_grade=run_and_debug('hard',['assign_billing','escalate','resolve'])
     assert hard_grade==1.0,f'Hard task failed. Getting {hard_grade}'
 
-
     print('\nSmoke test passed...')
+
+    hard_fail_grade=run_and_debug('hard',['assign_billing','resolve'])
+    print("Missed Escalation:",hard_fail_grade)
+    easy_fail_grad=run_and_debug('easy',['assign_billing','assign_shipping','resolve'])
+    print("Extra wrong step:",easy_fail_grad)
 
 
 if __name__=="__main__":
