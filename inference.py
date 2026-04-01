@@ -2,7 +2,9 @@ import requests
 import os
 from openai import OpenAI
 
-BASE_URL = "https://krishnajoga-support-ticket-router-v2.hf.space"
+BASE_URL = os.getenv("BASE_URL","https://krishnajoga-support-ticket-router-v2.hf.space")
+MODEL_NAME = os.getenv("MODEL_NAME","gpt-5-mini")
+HF_TOKEN = os.getenv("HF_TOKEN","")
 
 VALID_ACTIONS=[
     "assign_billing",
@@ -13,7 +15,7 @@ VALID_ACTIONS=[
     "resolve"
 ]
 
-client=OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client=OpenAI(base_url=BASE_URL if BASE_URL.startswith("http") else None,api_key=HF_TOKEN if HF_TOKEN else "dummy")
 
 def choose_action_with_llm(observation:dict,state:dict)->str:
     prompt=f"""You are an agent solving a customer support task. Your goal is to choose exactly one of the below tasks.{VALID_ACTIONS}.
@@ -43,7 +45,8 @@ def choose_action_with_llm(observation:dict,state:dict)->str:
     return action
 
 def run_episode(task_name:str):
-    response=requests.post(f"{BASE_URL}/reset",json={'task_name':task_name})
+    response=requests.post(f"{BASE_URL}/reset",json={'task_name':task_name},timeout=30)
+    response.raise_for_status()
     obs=response.json()
     print(f"\nTask name: {task_name}")
     print("Initial Observation:",obs)
@@ -51,11 +54,13 @@ def run_episode(task_name:str):
     
     while not done:
         action_res=requests.get(f"{BASE_URL}/baseline")
+        action_res.raise_for_status()
         action=action_res.json()['baseline_action']
 
         print("Action:",action)
 
         step_res=requests.post(f"{BASE_URL}/step",json={"action_type":action})
+        step_res.raise_for_status()
         data=step_res.json()
 
         print("Reward:",data['reward'])
@@ -64,11 +69,12 @@ def run_episode(task_name:str):
         done=data['done']
     
     grader_res=requests.get(f"{BASE_URL}/grader")
+    grader_res.raise_for_status()
     print("Final_grade:",grader_res.json())
 
 
 def run_episode_llm(task_name:str):
-    reset_res=requests.post(f"{BASE_URL}/reset",json={"task_name",task_name})
+    reset_res=requests.post(f"{BASE_URL}/reset",json={"task_name":task_name})
     observation=reset_res.json()
     print(f"\n----Task:{task_name}---")
     print("Initial Observation:",observation)
@@ -90,7 +96,9 @@ def run_episode_llm(task_name:str):
     grade_res=requests.get(f"{BASE_URL}/grader")
     print("Final Grade:",grade_res.json())
 
-if "__name__"=="__main__":
+if __name__=="__main__":
+    for task in ['easy','medium','hard','extra_hard','hard_missing_info','vip_priority','repeat_failure']:
+        run_episode(task)
     # run_episode('easy')
     # run_episode('medium')
     # run_episode('hard')
@@ -98,6 +106,6 @@ if "__name__"=="__main__":
     # run_episode('hard_missing_info')
     # run_episode('vip_priority')
     # run_episode('repeat_failure')
-    run_episode_llm('easy')
-    run_episode_llm('hard')
-    run_episode_llm('hard_missing_info')
+    # run_episode_llm('easy')
+    # run_episode_llm('hard')
+    # run_episode_llm('hard_missing_info')

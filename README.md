@@ -36,12 +36,32 @@ A real world environment for routing support tickets.
 - easy
 - medium
 - hard
+- extra_hard
+- hard_missing_info
+- vip_priority
+- repeat failure
 
 ## Grader
 Compares action history with current flow and outputs score from 0.0 to 1.0
 
 ## Baseline
 Rule-based policy using keywords from ticket text.
+
+## Agent comparison
+
+We evaluate 2 agents:
+### 1. Baseline Agent
+- Rule based
+- keyword matching
+- limited reasoning
+
+### 2. LLM Agent
+- context aware
+- handles ambiguity
+- adapts to multi-step tasks
+
+### Comparison
+
 
 ## Deployment
 Live API: https://krishnajoga-support-ticket-router-v2.hf.space
@@ -51,3 +71,4 @@ Docs: https://krishnajoga-support-ticket-router-v2.hf.space/docs
 
 ```bash  
 uvicorn app:app --host 0.0.0.0 --port 7860
+
