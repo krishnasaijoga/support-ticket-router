@@ -40,23 +40,3 @@ def baseline_policy(observation:TicketObservation,state:TicketState)->TicketActi
   if urgency == "high" and not state.escalated and (tier == "vip" or "third time" in text):
     return TicketAction("escalate")
   return TicketAction('resolve')
-
-  # if tier=="vip" and urgency=='high':
-  #   if "payment" in text and "assign_billing" not in history:
-  #     return TicketAction('assign_billing')
-  #   elif ("order" in text or "delivery" in text) and "assign_shipping" not in history:
-  #     return TicketAction('assign_shipping')
-  #   else:
-  #     return TicketAction('escalate')
-  
-  # if state.assigned_team == "technical":
-  #       return TicketAction("resolve")
-  # if state.assigned_team == "shipping":
-  #   if urgency == "high" and not state.escalated and tier == "vip":
-  #       return TicketAction("escalate")
-  #   return TicketAction("resolve")
-  # if "request_more_info" in history and "order" in text and "assign_shipping" not in history:
-  #       return TicketAction("assign_shipping")
-  # if urgency == "high" and not state.escalated and ("vip" in text or "third time" in text):
-  #       return TicketAction("escalate")
-  # return TicketAction("resolve")
