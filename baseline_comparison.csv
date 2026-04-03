@@ -1,8 +1,8 @@
 task,baseline_grade,steps_taken,resolved,done,history
-easy,0.5,3,False,True,assign_billing -> assign_billing -> assign_billing
-medium,0.5,3,False,True,assign_technical -> assign_technical -> assign_technical
+easy,1.0,2,True,True,assign_billing -> resolve
+medium,1.0,2,True,True,assign_technical -> resolve
 hard,0.33,4,False,True,assign_billing -> assign_billing -> assign_billing -> assign_billing
-extra_hard,0.33,4,False,True,assign_billing -> assign_billing -> assign_billing -> assign_billing
-hard_missing_info,0.33,4,False,True,request_more_info -> request_more_info -> request_more_info -> request_more_info
+extra_hard,1.0,3,True,True,assign_billing -> assign_technical -> resolve
+hard_missing_info,1.0,3,True,True,request_more_info -> assign_shipping -> resolve
 vip_priority,0.33,4,False,True,assign_shipping -> assign_shipping -> assign_shipping -> assign_shipping
-repeat_failure,0.33,4,False,True,assign_billing -> assign_billing -> assign_billing -> assign_billing
+repeat_failure,1.0,3,True,True,assign_billing -> escalate -> resolve
