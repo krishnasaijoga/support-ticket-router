@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from support_ticket_router.models import TicketAction, TicketObservation, TicketState
+from models import TicketAction, TicketObservation, TicketState
 
 VALID_ACTIONS = [
     "assign_billing",
@@ -57,7 +57,7 @@ TASKS = {
       "customer_tier":"vip",
       "urgency":"high",
       "max_steps":4,
-      "correct_flow":["assign_billing","assign_shipping","resolve"]
+      "correct_flow":["assign_shipping","escalate","resolve"]
     },
     "repeat_failure":{
       "ticket_id":"T7",
@@ -70,7 +70,7 @@ TASKS = {
 }
 
 class SupportTicketRouterEnv:
-    """A letter-guessing game environment following the OpenEnv pattern."""
+    """A Customer Ticket Routing system."""
 
     def __init__(self,tasks:Dict[str,Dict[str,Any]]):
         self.tasks=tasks
@@ -98,6 +98,7 @@ class SupportTicketRouterEnv:
             message='New ticket recieved. Choose next action.'
         )
         return observation
+    
     def step(self,action:TicketAction):
       if self.state_data is None:
         raise ValueError('Environment is not reset. Call reset(), then take a step.')
@@ -154,7 +155,7 @@ class SupportTicketRouterEnv:
       if len(self.state_data.history)>=max_steps and not self.state_data.done:
         self.state_data.done=True
         self.state_data.score-=1
-        message="Episode Terminated: max steps exceeded"
+        message="Episode Terminated: max steps exceeded. Please reset the environment for a new task."
       observation=TicketObservation(
           ticket_text=self.current_task['ticket_text'], # pyright: ignore[reportOptionalSubscript]
           customer_tier=self.current_task['customer_tier'], # pyright: ignore[reportOptionalSubscript]
@@ -162,6 +163,7 @@ class SupportTicketRouterEnv:
           message=message
       )
       return observation, reward, self.state_data.done, {'history':self.state_data.history}
+    
     @property
     def state(self)->TicketState:
       if self.state_data is None:

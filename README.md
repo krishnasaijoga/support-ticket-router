@@ -39,7 +39,7 @@ A real world environment for routing support tickets.
 - extra_hard
 - hard_missing_info
 - vip_priority
-- repeat failure
+- repeat_failure
 
 ## Grader
 Compares action history with current flow and outputs score from 0.0 to 1.0

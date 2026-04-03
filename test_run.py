@@ -10,7 +10,7 @@ def run_easy_task():
     print("Initial observation:")
     print(obs)
 
-    action1 = baseline_policy(obs)
+    action1 = baseline_policy(obs,env.state)
     print("\nBaseline action:")
     print(action1)
 
