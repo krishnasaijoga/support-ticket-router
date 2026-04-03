@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from models import TicketAction, TicketObservation, TicketState
+from support_ticket_router.models import TicketAction, TicketObservation, TicketState
 
 VALID_ACTIONS = [
     "assign_billing",
