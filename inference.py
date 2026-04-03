@@ -34,10 +34,9 @@ def choose_action_with_llm(observation:dict,state:dict)->str:
     history:{state.get("history")}
 
     Rules:
-    - Return only one string.
-    - Do not explain.
-    - Prefer efficient resolution.
-    - Escalate when urgency is high and issue is critical or repeated."""
+    - Return exactly one action from the allowed list.
+    - Output only the action text.
+    - No explanation, no punctuation, no JSON."""
 
     response=client.responses.create(model=MODEL_NAME,input=prompt)
     action=response.output_text.strip()
@@ -85,7 +84,9 @@ def run_episode_llm(task_name:str):
         state=state_res.json()
         try:
             action=choose_action_with_llm(observation,state)
-        except Exception:
+        except Exception as e:
+            print("\n---Error---\n\n\n",e)
+            # print("Failed in choose_action_with_llm")
             action="request_more_info" #not necessary, just for robustness
         print("Chosen action:",action)
         step_res=requests.post(f"{ENV_BASE_URL}/step",json={"action_type":action})
