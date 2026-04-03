@@ -93,7 +93,7 @@ def run_baseline():
     global last_observation
     if last_observation is None:
         raise HTTPException(status_code=400,detail="Reset the Environment first")
-    action=baseline_policy(last_observation)
+    action=baseline_policy(last_observation,env.state)
     return {"baseline_action":action.action_type}
 
 
