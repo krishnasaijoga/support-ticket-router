@@ -69,8 +69,8 @@ def main():
     print("\nComparison Table:\n")
     print(df.to_string(index=False))
 
-    # df.to_csv("baseline_comparison.csv", index=False)
-    # print("\nSaved to baseline_comparison.csv")
+    df.to_csv("baseline_comparison.csv", index=False)
+    print("\nSaved to baseline_comparison.csv")
 
 
 if __name__ == "__main__":

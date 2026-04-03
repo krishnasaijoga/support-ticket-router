@@ -61,7 +61,15 @@ We evaluate 2 agents:
 - adapts to multi-step tasks
 
 ### Comparison
-
+Basline
+task                baseline_grade      llm_grade
+easy                1.0
+medium              1.0
+hard                1.0
+extra_hard          1.0
+hard_missing_info   1.0
+vip_priority        1.0
+repeat_failure      1.0
 
 ## Deployment
 Live API: https://krishnajoga-support-ticket-router-v2.hf.space
