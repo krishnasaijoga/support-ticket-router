@@ -2,10 +2,20 @@ import requests
 import os
 from openai import OpenAI
 
-ENV_BASE_URL = os.getenv("API_BASE_URL","https://krishnajoga-support-ticket-router-v2.hf.space")
-API_BASE_URL=os.getenv("API_BASE_URL","https://api.openai.com/v1")
-MODEL_NAME = os.getenv("MODEL_NAME","gpt-5-mini")
+ENV_BASE_URL = os.getenv("ENV_BASE_URL","https://krishnajoga-support-ticket-router-v2.hf.space")
+API_BASE_URL=os.getenv("API_BASE_URL","https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME","Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN","")
+
+TASKS = [
+    "easy",
+    "medium",
+    "hard",
+    "extra_hard",
+    "hard_missing_info",
+    "vip_priority",
+    "repeat_failure",
+]
 
 VALID_ACTIONS=[
     "assign_billing",
@@ -16,10 +26,15 @@ VALID_ACTIONS=[
     "resolve"
 ]
 
+MAX_STEPS=8
+BENCHMARK='support-ticket-router'
+
 client=OpenAI(base_url=API_BASE_URL if API_BASE_URL.startswith("https") else None,api_key=HF_TOKEN if HF_TOKEN else "dummy")
 
+
 def choose_action_with_llm(observation:dict,state:dict)->str:
-    prompt=f"""You are an agent solving a customer support task. Your goal is to choose exactly one of the below tasks.{VALID_ACTIONS}.
+    prompt=f"""You are an agent solving a customer support task. Your goal is to choose exactly one of the below tasks.{VALID_ACTIONS}
+
     Current Observation:
     ticket_text:{observation.get("ticket_text")}
     customer_tier:{observation.get("customer_tier")}
@@ -36,7 +51,10 @@ def choose_action_with_llm(observation:dict,state:dict)->str:
     Rules:
     - Return exactly one action from the allowed list.
     - Output only the action text.
-    - No explanation, no punctuation, no JSON."""
+    - No explanation
+    - No punctuation
+    - No JSON
+    """.strip()
 
     response=client.responses.create(model=MODEL_NAME,input=prompt)
     action=response.output_text.strip()
@@ -44,70 +62,63 @@ def choose_action_with_llm(observation:dict,state:dict)->str:
         return "request_more_info"
     return action
 
-def run_episode(task_name:str):
-    response=requests.post(f"{ENV_BASE_URL}/reset",json={'task_name':task_name},timeout=30)
-    response.raise_for_status()
-    obs=response.json()
-    print(f"\nTask name: {task_name}")
-    print("Initial Observation:",obs)
-    done=False
-    
-    while not done:
-        action_res=requests.get(f"{ENV_BASE_URL}/baseline")
-        action_res.raise_for_status()
-        action=action_res.json()['baseline_action']
 
-        print("Action:",action)
-
-        step_res=requests.post(f"{ENV_BASE_URL}/step",json={"action_type":action})
-        step_res.raise_for_status()
-        data=step_res.json()
-
-        print("Reward:",data['reward'])
-        print("Message:",data['observation']['message'])
-
-        done=data['done']
-    
-    grader_res=requests.get(f"{ENV_BASE_URL}/grader")
-    grader_res.raise_for_status()
-    print("Final_grade:",grader_res.json())
+def format_reward(value:float)->str:
+    return f"{value:.2f}"
 
 
-def run_episode_llm(task_name:str):
-    reset_res=requests.post(f"{ENV_BASE_URL}/reset",json={"task_name":task_name})
-    observation=reset_res.json()
-    print(f"\n----Task:{task_name}---")
-    print("Initial Observation:",observation)
-    done=False
-    while not done:
-        state_res=requests.get(f"{ENV_BASE_URL}/state")
-        state=state_res.json()
-        try:
-            action=choose_action_with_llm(observation,state)
-        except Exception as e:
-            print("\n---Error---\n\n\n",e)
-            # print("Failed in choose_action_with_llm")
-            action="request_more_info" #not necessary, just for robustness
-        print("Chosen action:",action)
-        step_res=requests.post(f"{ENV_BASE_URL}/step",json={"action_type":action})
-        step_data=step_res.json()
-        print("Reward:",step_data["reward"])
-        print("Message:",step_data["observation"]["message"])
-        observation=step_data['observation']
-        done=step_data['done']
-    grade_res=requests.get(f"{ENV_BASE_URL}/grader")
-    print("Final Grade:",grade_res.json())
+def run_episode(task_name:str)->None:
+    rewards=[]
+    step_num=0
+    success=False
+    last_error=None
+    print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
+    try:
+        response=requests.post(f"{ENV_BASE_URL}/reset",json={'task_name':task_name},timeout=30)
+        response.raise_for_status()
+        obs=response.json()
+        done=False
+        
+        while not done and step_num<MAX_STEPS:
+            state_res=requests.get(f"{ENV_BASE_URL}/state",timeout=30)
+            state_res.raise_for_status()
+            state=state_res.json()
 
-if __name__=="__main__":
-    for task in ['easy']:#,'medium','hard','extra_hard','hard_missing_info','vip_priority','repeat_failure']:
-        run_episode_llm(task)
-    # run_episode('easy')
-    # run_episode('medium')
-    # run_episode('hard')
-    # run_episode('extra_hard')
-    # run_episode('hard_missing_info')
-    # run_episode('vip_priority')
-    # run_episode('repeat_failure')
-    # run_episode_llm('easy')
-    # run_episode_llm('hard')
-    # run_episode_llm('hard_missing_info')
+            try:
+                action=choose_action_with_llm(obs,state)
+            except Exception as e:
+                last_error=str(e)
+                action='request_more_info'
+            
+            step_res=requests.get(f"{ENV_BASE_URL}/step",json={"action_type",action},timeout=30)
+            step_res.raise_for_status()
+            step_data=step_res.json()
+
+            reward=float(step_data.get('reward',0.0))
+            done=bool(step_data.get('done',False))
+            info=step_data.get('info',{}) or {}
+            step_num+=1
+            rewards.append(reward)
+
+            raw_error=info.get('error')
+            error_str=raw_error if raw_error is not None else (last_error if last_error is not None else 'null')
+            print(f"[STEP] step={step_num} action={action} reward={format_reward(reward)} done={'true' if done else 'false'} error={error_str}")
+
+            obs=step_data.get('observation',{})
+        
+        grader_res=requests.get(f"{ENV_BASE_URL}/grader",timeout=30)
+        grader_res.raise_for_status()
+        grader_payload=grader_res.json()
+        grade=float(grader_payload.get('grade',0.0))
+        success=grade>0.99
+    except Exception as e:
+        last_error=str(e)
+        print(f"[STEP] step={step_num+1} action=null reward=0.0 done=true error={last_error}")
+    finally:
+        rewards_str=",".join(format_reward(r) for r in rewards)
+        print(f"[END] success={'true' if success else 'false'} steps={step_num} rewards={rewards_str}")
+
+
+if __name__=='__main__':
+    for task in TASKS:
+        run_episode(task)

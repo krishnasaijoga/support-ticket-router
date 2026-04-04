@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from support_ticket_router.models import TicketAction, TicketObservation, TicketState
+from support_ticket_router.models import TicketAction, TicketObservation, TicketState, TicketReward
 
 VALID_ACTIONS = [
     "assign_billing",
@@ -144,8 +144,9 @@ class SupportTicketRouterEnv:
         
         if self.state_data.current_step==len(correct_flow):
           self.state_data.done=True
-          reward=+1
-          self.state_data.score+=1
+          completion_bonus=1.0
+          reward+=completion_bonus
+          self.state_data.score+=completion_bonus
           message=f"Task completed successfully with action: {action_type}"
       else:
         reward=-0.5
