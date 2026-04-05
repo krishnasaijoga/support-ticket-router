@@ -5,7 +5,7 @@ from openai import OpenAI
 ENV_BASE_URL = os.getenv("ENV_BASE_URL","https://krishnajoga-support-ticket-router-v2.hf.space")
 API_BASE_URL=os.getenv("API_BASE_URL","https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME","Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.getenv("HF_TOKEN","")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 TASKS = [
     "easy",
@@ -33,7 +33,8 @@ client=OpenAI(base_url=API_BASE_URL,api_key=HF_TOKEN)
 
 
 def choose_action_with_llm(observation:dict,state:dict)->str:
-    prompt=f"""You are an agent solving a customer support task. Your goal is to choose exactly one of the below tasks.{VALID_ACTIONS}
+    prompt=f"""You are an agent solving a customer support task. Your goal is to choose exactly one action from this list: assign_billing, assign_technical, assign_shipping, escalate, resolve, request_more_info
+    Return only the action name and nothing else.
 
     Current Observation:
     ticket_text:{observation.get("ticket_text")}
@@ -56,11 +57,19 @@ def choose_action_with_llm(observation:dict,state:dict)->str:
     - No JSON
     """.strip()
 
-    response=client.responses.create(model=MODEL_NAME,input=prompt)
-    action=response.output_text.strip()
-    if action not in VALID_ACTIONS:
-        return "request_more_info"
-    return action
+    #response=client.responses.create(model=MODEL_NAME,input=prompt)
+    completion=client.chat.completions.create(model=MODEL_NAME,messages=[
+        {'role':'system','content':'You are a precise routing agent.'},
+        {'role':'user','content':prompt},
+    ],temperature=0,max_tokens=100)
+    #raw_output = response.output_text
+    raw_output=(completion.choices[0].message.content or '').strip()
+    # print(f"RAW_MODEL_OUTPUT={raw_output!r}")
+    action=raw_output.strip().lower()
+    for valid_action in VALID_ACTIONS:
+        if valid_action in action:
+            return valid_action
+    return "request_more_info"
 
 
 def format_reward(value:float)->str:
@@ -88,7 +97,7 @@ def run_episode(task_name:str)->None:
             try:
                 action=choose_action_with_llm(obs,state)
             except Exception as e:
-                last_error=str(e)
+                last_error=str(e).replace("\n"," ")[:200]
                 action='request_more_info'
             
             step_res=requests.post(f"{ENV_BASE_URL}/step",json={"action_type":action},timeout=30)
