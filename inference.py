@@ -29,7 +29,7 @@ VALID_ACTIONS=[
 MAX_STEPS=8
 BENCHMARK='support-ticket-router'
 
-client=OpenAI(base_url=API_BASE_URL if API_BASE_URL.startswith("https") else None,api_key=HF_TOKEN if HF_TOKEN else "dummy")
+client=OpenAI(base_url=API_BASE_URL,api_key=HF_TOKEN)
 
 
 def choose_action_with_llm(observation:dict,state:dict)->str:
@@ -72,6 +72,7 @@ def run_episode(task_name:str)->None:
     step_num=0
     success=False
     last_error=None
+    grade=0.0
     print(f"[START] task={task_name} env={BENCHMARK} model={MODEL_NAME}")
     try:
         response=requests.post(f"{ENV_BASE_URL}/reset",json={'task_name':task_name},timeout=30)
@@ -90,11 +91,11 @@ def run_episode(task_name:str)->None:
                 last_error=str(e)
                 action='request_more_info'
             
-            step_res=requests.get(f"{ENV_BASE_URL}/step",json={"action_type",action},timeout=30)
+            step_res=requests.post(f"{ENV_BASE_URL}/step",json={"action_type":action},timeout=30)
             step_res.raise_for_status()
             step_data=step_res.json()
 
-            reward=float(step_data.get('reward',0.0))
+            reward=float(step_data.get('reward',0.00))
             done=bool(step_data.get('done',False))
             info=step_data.get('info',{}) or {}
             step_num+=1
@@ -113,10 +114,11 @@ def run_episode(task_name:str)->None:
         success=grade>0.99
     except Exception as e:
         last_error=str(e)
-        print(f"[STEP] step={step_num+1} action=null reward=0.0 done=true error={last_error}")
+        print(f"[STEP] step={step_num+1} action=null reward=0.00 done=true error={last_error}")
     finally:
         rewards_str=",".join(format_reward(r) for r in rewards)
-        print(f"[END] success={'true' if success else 'false'} steps={step_num} rewards={rewards_str}")
+        score=grade
+        print(f"[END] success={'true' if success else 'false'} steps={step_num} score={format_reward(score)} rewards={rewards_str}")
 
 
 if __name__=='__main__':
