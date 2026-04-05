@@ -48,7 +48,7 @@ def reset_env(request:ResetRequest):
 def step_env(request:StepRequest):
     global last_observation
     try:
-        obs, reward, done, info=env.step(TicketAction(request.action_type))
+        obs, reward, done, info=env.step(TicketAction(action_type=request.action_type))
     except ValueError as e:
         raise HTTPException(status_code=400,detail=str(e))
     last_observation=obs
