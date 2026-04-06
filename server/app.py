@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI,HTTPException, Body
 from pydantic import BaseModel
 from support_ticket_router.environment import SupportTicketRouterEnv,TASKS
 from support_ticket_router.models import TicketAction
@@ -31,7 +31,7 @@ def get_tasks():
 
 
 @app.post("/reset")
-def reset_env(request:Optional[ResetRequest]=None):
+def reset_env(request:Optional[ResetRequest]=Body(None)):
     global last_observation
     task_name=request.task_name if request is not None else "easy"
     if task_name not in TASKS:
