@@ -4,6 +4,7 @@ from support_ticket_router.environment import SupportTicketRouterEnv,TASKS
 from support_ticket_router.models import TicketAction
 from support_ticket_router.grader import grade_episode
 from support_ticket_router.baseline import baseline_policy
+from typing import Optional
 
 app=FastAPI(title='Support Ticket Router API')
 
@@ -30,11 +31,12 @@ def get_tasks():
 
 
 @app.post("/reset")
-def reset_env(request:ResetRequest):
+def reset_env(request:Optional[ResetRequest]=None):
     global last_observation
-    if request.task_name not in TASKS:
-        raise HTTPException(status_code=400,detail=f'Unknown task name: {request.task_name}')
-    obs=env.reset(request.task_name)
+    task_name=request.task_name if request is not None else "easy"
+    if task_name not in TASKS:
+        raise HTTPException(status_code=400,detail=f'Unknown task name: {task_name}')
+    obs=env.reset(task_name)
     last_observation=obs
     return {
         "ticket_text":obs.ticket_text,
