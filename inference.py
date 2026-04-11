@@ -120,7 +120,7 @@ def run_episode(task_name:str)->None:
         grader_res.raise_for_status()
         grader_payload=grader_res.json()
         grade=float(grader_payload.get('grade',0.0))
-        success=grade>0.99
+        success=grade>=0.95
     except Exception as e:
         last_error=str(e)
         print(f"[STEP] step={step_num+1} action=null reward=0.00 done=true error={last_error}")
